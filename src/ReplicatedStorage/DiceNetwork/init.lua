@@ -5,6 +5,9 @@
 
 --[[
 [DOCUMENTATION]:
+	.CreateEvent()
+	.CreateFunction()
+	
 	:HookEvent()
 	:HookFunction()
 	:UnhookEvent()
@@ -55,13 +58,11 @@ local function GetRemote(name,enum)
 		if not remote then
 			local new; do
 				if enum == Network.Enums.Event then
-					new = Instance.new('RemoteEvent')
+					new = Network.CreateEvent(name)
 				elseif enum == Network.Enums.Function then
-					new = Instance.new('RemoteFunction')
+					new = Network.CreateFunction(name)
 				end
 			end
-			new.Name = name
-			new.Parent = Container
 			remote = new
 		end
 		
@@ -69,9 +70,30 @@ local function GetRemote(name,enum)
 	elseif IsClient then
 		local remote = Container:WaitForChild(name, 3)
 		assert(remote ~= nil)
-
 		return remote
 	end
+end
+
+function Network.CreateEvent(name)
+	local remote = Container:FindFirstChild(name)
+	if not remote then
+		local new = Instance.new('RemoteEvent')
+		new.Name = name
+		new.Parent = Container
+		remote = new
+	end
+	return remote
+end
+
+function Network.CreateFunction(name)
+	local remote = Container:FindFirstChild(name)
+	if not remote then
+		local new = Instance.new('RemoteFunction')
+		new.Name = name
+		new.Parent = Container
+		remote = new
+	end
+	return remote
 end
 
 function Network:HookEvent(name,code)
