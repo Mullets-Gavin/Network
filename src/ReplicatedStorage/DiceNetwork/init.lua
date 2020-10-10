@@ -7,6 +7,7 @@
 [DOCUMENTATION]:
 	.CreateEvent()
 	.CreateFunction()
+	.CreateBindable()
 	
 	:HookEvent()
 	:HookFunction()
@@ -20,11 +21,18 @@
 	
 	:InvokeServer()
 	:InvokeClient()
+	
+	:BindEvent()
+	:BindFunction()
+	
+	:FireBindable()
+	:InvokeBindable()
 --]]
 
 --// logic
 local Network = {}
 Network.Events = {}
+Network.Bindables = {}
 Network.Enums = {
 	['Event'] = 1;
 	['Function'] = 2;
@@ -74,6 +82,27 @@ local function GetRemote(name,enum)
 	end
 end
 
+local function GetBindable(name,enum)
+	if enum then
+		local bindable = Container:FindFirstChild(name)
+		if not bindable then
+			local new; do
+				if enum == Network.Enums.Event then
+					new = Network.CreateBindableEvent(name)
+				elseif enum == Network.Enums.Function then
+					new = Network.CreateBindableFunction(name)
+				end
+			end
+			bindable = new
+		end
+		return bindable
+	else
+		local bindable = Container:WaitForChild(name, 3)
+		assert(bindable ~= nil)
+		return bindable
+	end
+end
+
 function Network.CreateEvent(name)
 	local remote = Container:FindFirstChild(name)
 	if not remote then
@@ -94,6 +123,28 @@ function Network.CreateFunction(name)
 		remote = new
 	end
 	return remote
+end
+
+function Network.CreateBindableEvent(name)
+	local bindable = Container:FindFirstChild(name)
+	if not bindable then
+		local new = Instance.new('BindableEvent')
+		new.Name = name
+		new.Parent = Container
+		bindable = new
+	end
+	return bindable
+end
+
+function Network.CreateBindableFunction(name)
+	local bindable = Container:FindFirstChild(name)
+	if not bindable then
+		local new = Instance.new('BindableFunction')
+		new.Name = name
+		new.Parent = Container
+		bindable = new
+	end
+	return bindable
 end
 
 function Network:HookEvent(name,code)
@@ -176,6 +227,7 @@ function Network:FireAllClients(name,...)
 end
 
 function Network:InvokeServer(name,...)
+	assert(typeof(name) == 'string')
 	assert(IsClient)
 	
 	local remote = GetRemote(name)
@@ -183,10 +235,47 @@ function Network:InvokeServer(name,...)
 end
 
 function Network:InvokeClient(name,...)
+	assert(typeof(name) == 'string')
 	assert(IsServer)
 	
 	local remote = GetRemote(name)
 	return remote:InvokeClient(...)
+end
+
+function Network:BindEvent(name,code)
+	assert(typeof(name) == 'string')
+	assert(typeof(code) == 'function')
+	
+	local bindable = GetBindable(name,Network.Enums.Event)
+	local event = bindable.Event
+	local connection = event:Connect(function(...)
+		code(...)
+	end)
+	
+	Network.Bindables[name] = connection
+end
+
+function Network:BindFunction(name,code)
+	assert(typeof(name) == 'string')
+	assert(typeof(code) == 'function')
+	
+	local bindable = GetBindable(name,Network.Enums.Function)
+	local callbackKey = 'Invoke'
+	bindable[callbackKey] = code
+	Network.Bindables[name] = bindable
+end
+
+function Network:FireBindable(name,...)
+	assert(typeof(name) == 'string')
+	
+	local bindable = GetBindable(name)
+	bindable:Fire(...)
+end
+
+function Network:InvokeBindable(name,...)
+	assert(typeof(name) == 'string')
+	local bindable = GetBindable(name)
+	return bindable:Invoke(...)
 end
 
 return Network
