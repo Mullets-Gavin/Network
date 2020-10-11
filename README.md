@@ -5,3 +5,31 @@ By [Mullet Mafia Dev](https://www.roblox.com/groups/5018486/Mullet-Mafia-Dev#!/a
 </div>
 
 A Network wrapper for Roblox remote events & functions.
+
+## Documentation
+```lua
+.CreateEvent()
+.CreateFunction()
+.CreateBindable()
+
+:HookEvent()
+:HookFunction()
+:UnhookEvent()
+:UnhookFunction()
+
+:FireServer()
+:FireClient()
+:FireClients()
+:FireAllClients()
+
+:InvokeServer()
+:InvokeClient()
+
+:BindEvent()
+:BindFunction()
+:UnbindEvent()
+:UnbindFunction()
+
+:FireBindable()
+:InvokeBindable()
+```
