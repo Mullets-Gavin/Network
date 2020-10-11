@@ -24,6 +24,8 @@
 	
 	:BindEvent()
 	:BindFunction()
+	:UnbindEvent()
+	:UnbindFunction()
 	
 	:FireBindable()
 	:InvokeBindable()
@@ -240,6 +242,24 @@ function Network:InvokeClient(name,...)
 	
 	local remote = GetRemote(name)
 	return remote:InvokeClient(...)
+end
+
+function Network:UnbindEvent(name)
+	assert(typeof(name) == 'string')
+	
+	local connection = Network.Bindables[name]
+	if connection then
+		connection:Disconnect()
+	end
+end
+
+function Network:UnbindFunction(name)
+	assert(typeof(name) == 'string')
+	
+	local connection = Network.Bindables[name]
+	if connection then
+		connection:Disconnect()
+	end
 end
 
 function Network:BindEvent(name,code)
